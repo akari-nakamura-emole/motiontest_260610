@@ -1,0 +1,524 @@
+{
+  "project": {
+    "renderer": "WebGLRenderer",
+    "shadows": true,
+    "shadowType": 1,
+    "toneMapping": 7,
+    "toneMappingExposure": 1.31
+  },
+  "camera": {
+    "metadata": {
+      "version": 4.7,
+      "type": "Object",
+      "generator": "Object3D.toJSON"
+    },
+    "object": {
+      "uuid": "638a84e4-bc17-4362-9dc9-bf6ec19943ed",
+      "type": "PerspectiveCamera",
+      "name": "Camera",
+      "layers": 1,
+      "matrix": [
+        0.9999996793747119,
+        -5.4210108624275216e-20,
+        0.0008007811644085964,
+        0,
+        0.0008007811644081959,
+        9.999999996956885e-07,
+        -0.9999996793742121,
+        0,
+        -8.007811643060032e-10,
+        0.9999999999995003,
+        9.999996790632792e-07,
+        0,
+        0.0015040166705740602,
+        4.896056621848641,
+        0.0008223951386517691,
+        1
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ],
+      "fov": 50,
+      "zoom": 1,
+      "near": 0.001,
+      "far": 10000000000,
+      "focus": 10,
+      "aspect": 1.3164556962025316,
+      "filmGauge": 35,
+      "filmOffset": 0
+    }
+  },
+  "scripts": {
+    "9bc34542-023f-4819-9c01-dd2d9265935d": [
+      {
+        "name": "test",
+        "source": "var names = [\n  \"circle_tube\",\n  \"e_tube\",\n  \"e_block\",\n  \"circle_eggblock\"\n];\n\nvar items = [];\nvar current = 0;\nvar lastTime = 0;\n\nvar interval = 1000;\nvar popTime = 300;\nvar popScale = 1.18;\n\nvar phase = \"pop\"; // pop / spin\n\nvar eggAxis = new THREE.Vector3(1, 0, -1).normalize();\nvar popAxis = new THREE.Vector3(-1, 0, 2).normalize();\n\nfunction init() {\n  items = names\n    .map(function (name) {\n      return this.getObjectByName(name);\n    }, this)\n    .filter(Boolean);\n\n  items.forEach(function (obj, i) {\n    obj.userData.baseScale = obj.scale.clone();\n    obj.userData.baseQuaternion = obj.quaternion.clone();\n    obj.visible = i === 0;\n  });\n\n  current = 0;\n  lastTime = performance.now();\n  phase = \"pop\";\n}\n\nfunction update() {\n  if (items.length === 0) return;\n\n  var now = performance.now();\n  var t = now - lastTime;\n  var obj = items[current];\n\n  if (phase === \"pop\") {\n    var p = Math.min(t / popTime, 1);\n    var ease = 1 - Math.pow(1 - p, 3);\n    var s = popScale + (1 - popScale) * ease;\n\n    obj.scale.set(\n      obj.userData.baseScale.x * s,\n      obj.userData.baseScale.y * s,\n      obj.userData.baseScale.z * s\n    );\n\n    if (current === 0) {\n\n  // circle_tube\n\t  obj.quaternion.copy(obj.userData.baseQuaternion);\n\n\t}\n\telse if (current === 2) {\n\n\t  // e_block\n\t  obj.quaternion.copy(obj.userData.baseQuaternion);\n\n\t}\n\telse if (current === items.length - 1) {\n\n\t  // circle_eggblock\n\t  var popAngle = (1 - ease) * Math.PI * 2;\n\t  var continuousAngle = t * 0.003;\n\n\t  obj.quaternion.copy(obj.userData.baseQuaternion);\n\n\t  obj.quaternion.multiply(\n\t\tnew THREE.Quaternion().setFromAxisAngle(\n\t\t  eggAxis,\n\t\t  popAngle + continuousAngle\n\t\t)\n\t  );\n\n\t}\n\telse {\n\n\t  // e_tube\n\t  var angle = (1 - ease) * Math.PI * 2;\n\n\t  obj.quaternion.copy(obj.userData.baseQuaternion);\n\n\t  obj.quaternion.multiply(\n\t\tnew THREE.Quaternion().setFromAxisAngle(\n\t\t  popAxis,\n\t\t  angle\n\t\t)\n\t  );\n\n\t}\n\n    if (t > interval) {\n      // 最後のeggは消さず、そのままspinへ\n      if (current === items.length - 1) {\n        obj.scale.copy(obj.userData.baseScale);\n        phase = \"spin\";\n        return;\n      }\n\n      obj.visible = false;\n\n      current++;\n\n      items[current].visible = true;\n      items[current].scale.copy(items[current].userData.baseScale);\n      items[current].quaternion.copy(items[current].userData.baseQuaternion);\n\n      lastTime = now;\n    }\n\n    return;\n  }\n\n  if (phase === \"spin\") {\n    var spinObj = items[items.length - 1];\n    var spinT = now - lastTime;\n    var angle = spinT * 0.003;\n\n    spinObj.quaternion.copy(spinObj.userData.baseQuaternion);\n    spinObj.quaternion.multiply(\n      new THREE.Quaternion().setFromAxisAngle(\n        eggAxis,\n        angle\n      )\n    );\n  }\n}\n\t\n\n\t\n\t\n\t\n\t\n\t\n\t\n\t\n\t\n\t\n\t\n\t\n\t\n\t\n\t\n\t\n\t\n\t\n\t\n\t\n\t"
+      }
+    ]
+  },
+  "scene_object": {
+    "uuid": "9bc34542-023f-4819-9c01-dd2d9265935d",
+    "type": "Scene",
+    "name": "elogo_emoleHP_260609.glb",
+    "layers": 1,
+    "matrix": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "up": [
+      0,
+      1,
+      0
+    ],
+    "environment": "a164864d-592b-459c-8333-2f8dbb0d7e4a",
+    "children": [
+      {
+        "uuid": "85572900-2bc2-45f7-8c4c-c3dec3c38c49",
+        "type": "AmbientLight",
+        "name": "AmbientLight",
+        "layers": 1,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "color": 2236962,
+        "intensity": 0.2
+      },
+      {
+        "uuid": "11c7cfa0-39a1-49de-aff0-5e059c6c5ed7",
+        "type": "DirectionalLight",
+        "name": "DirectionalLight",
+        "layers": 1,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          1.155,
+          -0.697,
+          0.837,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "color": 16777215,
+        "intensity": 0,
+        "shadow": {
+          "camera": {
+            "uuid": "e84902f8-a128-44d2-8e26-fde10d158a98",
+            "type": "OrthographicCamera",
+            "layers": 1,
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "zoom": 1,
+            "left": -5,
+            "right": 5,
+            "top": 5,
+            "bottom": -5,
+            "near": 0.5,
+            "far": 500
+          }
+        },
+        "target": "6183b04c-1d50-45d3-a097-925da0ececac"
+      },
+      {
+        "uuid": "88cc76a0-aa6e-4b6e-b1d1-11d773a51621",
+        "type": "DirectionalLight",
+        "name": "DirectionalLight",
+        "userData": {
+          "name": "DirectionalLight"
+        },
+        "layers": 1,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          1.155,
+          -0.697,
+          0.837,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "color": 16777215,
+        "intensity": 0,
+        "shadow": {
+          "camera": {
+            "uuid": "51275fd0-c367-40af-8c41-9e792ed5dc41",
+            "type": "OrthographicCamera",
+            "layers": 1,
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "zoom": 1,
+            "left": -5,
+            "right": 5,
+            "top": 5,
+            "bottom": -5,
+            "near": 0.5,
+            "far": 500
+          }
+        },
+        "target": "556e631f-ebc8-4588-bc22-7a07ffade67e"
+      },
+      {
+        "uuid": "12c5a9b3-c01e-40f8-907b-b16984fb90b5",
+        "type": "Mesh",
+        "name": "circle_eggblock",
+        "userData": {
+          "name": "circle_eggblock",
+          "baseScale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          },
+          "baseRotation": {
+            "isEuler": true,
+            "_x": 0,
+            "_y": 0,
+            "_z": 0,
+            "_order": "XYZ"
+          },
+          "baseQuaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "layers": 1,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0.0004813359235649184,
+          0,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "geometry": "015f8510-592c-425a-b803-b03d9534431c",
+        "material": "c1b55bf5-d98a-4a62-b1f9-e9531f07c681"
+      },
+      {
+        "uuid": "427470b2-a349-4ba6-b641-c206147da4e5",
+        "type": "Mesh",
+        "name": "e_tube",
+        "userData": {
+          "name": "e_tube",
+          "baseScale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          },
+          "baseRotation": {
+            "isEuler": true,
+            "_x": 0,
+            "_y": 0,
+            "_z": 0,
+            "_order": "XYZ"
+          },
+          "baseQuaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "layers": 1,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "geometry": "b93cb6b0-f9cf-43fb-a427-c85858513eea",
+        "material": "f5c3be0a-7104-4ff3-8313-4b489e183985"
+      },
+      {
+        "uuid": "b57908a1-d788-49dc-8110-fa9437beecdb",
+        "type": "Mesh",
+        "name": "e_block",
+        "userData": {
+          "name": "e_block",
+          "baseScale": {
+            "x": 1.0719774961471558,
+            "y": 1.0719774961471558,
+            "z": 1.0719774961471558
+          },
+          "baseRotation": {
+            "isEuler": true,
+            "_x": 0,
+            "_y": 0,
+            "_z": 0,
+            "_order": "XYZ"
+          },
+          "baseQuaternion": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "layers": 1,
+        "matrix": [
+          1.0719774961471558,
+          0,
+          0,
+          0,
+          0,
+          1.0719774961471558,
+          0,
+          0,
+          0,
+          0,
+          1.0719774961471558,
+          0,
+          0,
+          -0.19660167071972745,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "geometry": "152dd5aa-71d7-4abe-95d8-785c8f78ded5",
+        "material": "cb3bcd8f-3c82-4d4c-821c-6a62d2dbebe7"
+      },
+      {
+        "uuid": "c8e7c796-a825-4901-a2a4-1e1a1292c30f",
+        "type": "Mesh",
+        "name": "circle_tube",
+        "userData": {
+          "name": "circle_tube",
+          "baseScale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          },
+          "baseRotation": {
+            "isEuler": true,
+            "_x": 0,
+            "_y": 0,
+            "_z": -0.003834708600770167,
+            "_order": "XYZ"
+          },
+          "baseQuaternion": [
+            0,
+            0,
+            -0.0019173531256071361,
+            0.9999981618768067
+          ]
+        },
+        "layers": 1,
+        "matrix": [
+          0.9999926475139834,
+          -0.0038346992025517722,
+          0,
+          0,
+          0.0038346992025517722,
+          0.9999926475139834,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "geometry": "fee93f2f-e118-4080-b373-cd8aaa3c96aa",
+        "material": "f5c3be0a-7104-4ff3-8313-4b489e183985"
+      },
+      {
+        "uuid": "d2b69ac6-a264-483a-8a14-92d583a22bdd",
+        "type": "PerspectiveCamera",
+        "name": "PerspectiveCamera",
+        "layers": 1,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0.0010414859598094628,
+          -0.9999994576533506,
+          0,
+          0,
+          0.9999994576533506,
+          0.0010414859598094628,
+          0,
+          0,
+          10,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fov": 50,
+        "zoom": 1,
+        "near": 0.1,
+        "far": 2000,
+        "focus": 10,
+        "aspect": 1.3164556962025316,
+        "filmGauge": 35,
+        "filmOffset": 0
+      },
+      {
+        "uuid": "cea236d0-fc29-4d8b-94d3-7d01c5538999",
+        "type": "OrthographicCamera",
+        "name": "OrthographicCamera",
+        "layers": 1,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "zoom": 1,
+        "left": -1.3164556962025316,
+        "right": 1.3164556962025316,
+        "top": 1,
+        "bottom": -1,
+        "near": 0.1,
+        "far": 2000
+      }
+    ],
+    "backgroundBlurriness": 0.2,
+    "backgroundIntensity": 0.2,
+    "backgroundRotation": [
+      0,
+      0,
+      0,
+      "XYZ"
+    ],
+    "environmentRotation": [
+      0,
+      0,
+      0,
+      "XYZ"
+    ]
+  }
+}
