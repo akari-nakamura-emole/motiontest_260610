@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>e-logo motion</title>
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+    }
+
+    #stage {
+      width: 100vw;
+      height: 100vh;
+      background: transparent;
+    }
+
+    canvas {
+      display: block;
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div id="stage"></div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    const GLB_FILE = './scene.glb';
+
+    const stage = document.getElementById('stage');
+
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.001, 10000000000);
+    camera.matrix.fromArray([
+      0.9999996793747119, -5.4210108624275216e-20, 0.0008007811644085964, 0,
+      0.0008007811644081959, 9.999999996956885e-07, -0.9999996793742121, 0,
+      -8.007811643060032e-10, 0.9999999999995003, 9.999996790632792e-07, 0,
+      0.0015040166705740602, 4.896056621848641, 0.0008223951386517691, 1
+    ]);
+    camera.matrix.decompose(camera.position, camera.quaternion, camera.scale);
+
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      preserveDrawingBuffer: true
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000, 0);
+    renderer.setClearAlpha(0);
+    renderer.shadowMap.enabled = true;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 2.31;
+    stage.appendChild(renderer.domElement);
+
+    const ambient = new THREE.AmbientLight(0x222222, 0.8);
+    scene.add(ambient);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    keyLight.position.set(2, 4, 3);
+    scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    fillLight.position.set(-3, 2, -2);
+    scene.add(fillLight);
+
+    const names = [
+      'circle_tube',
+      'e_tube',
+      'e_block',
+      'circle_eggblock'
+    ];
+
+    let items = [];
+    let current = 0;
+    let lastTime = 0;
+    let phase = 'pop';
+
+    const interval = 1000;
+    const popTime = 300;
+    const popScale = 1.18;
+
+    const eggAxis = new THREE.Vector3(1, 0, -1).normalize();
+    const popAxis = new THREE.Vector3(-1, 0, 2).normalize();
+
+    function initMotion(root) {
+      items = names
+        .map((name) => root.getObjectByName(name))
+        .filter(Boolean);
+
+      items.forEach((obj, i) => {
+        obj.userData.baseScale = obj.scale.clone();
+        obj.userData.baseQuaternion = obj.quaternion.clone();
+        obj.visible = i === 0;
+      });
+
+      current = 0;
+      lastTime = performance.now();
+      phase = 'pop';
+    }
+
+    function updateMotion() {
+      if (items.length === 0) return;
+
+      const now = performance.now();
+      const t = now - lastTime;
+      const obj = items[current];
+
+      if (phase === 'pop') {
+        const p = Math.min(t / popTime, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        const s = popScale + (1 - popScale) * ease;
+
+        obj.scale.set(
+          obj.userData.baseScale.x * s,
+          obj.userData.baseScale.y * s,
+          obj.userData.baseScale.z * s
+        );
+
+        if (current === 0) {
+          // circle_tube：回転なしでぽん
+          obj.quaternion.copy(obj.userData.baseQuaternion);
+        } else if (current === 2) {
+          // e_block：回転なしでぽん
+          obj.quaternion.copy(obj.userData.baseQuaternion);
+        } else if (current === items.length - 1) {
+          // circle_eggblock：ぽん中から回転開始
+          const popAngle = (1 - ease) * Math.PI * 2;
+          const continuousAngle = t * 0.003;
+
+          obj.quaternion.copy(obj.userData.baseQuaternion);
+          obj.quaternion.multiply(
+            new THREE.Quaternion().setFromAxisAngle(
+              eggAxis,
+              popAngle + continuousAngle
+            )
+          );
+        } else {
+          // e_tube：斜め軸でぐるん＋ぽん
+          const angle = (1 - ease) * Math.PI * 2;
+
+          obj.quaternion.copy(obj.userData.baseQuaternion);
+          obj.quaternion.multiply(
+            new THREE.Quaternion().setFromAxisAngle(
+              popAxis,
+              angle
+            )
+          );
+        }
+
+        if (t > interval) {
+          if (current === items.length - 1) {
+            obj.scale.copy(obj.userData.baseScale);
+            phase = 'spin';
+            return;
+          }
+
+          obj.visible = false;
+          current++;
+
+          items[current].visible = true;
+          items[current].scale.copy(items[current].userData.baseScale);
+          items[current].quaternion.copy(items[current].userData.baseQuaternion);
+
+          lastTime = now;
+        }
+
+        return;
+      }
+
+      if (phase === 'spin') {
+        const spinObj = items[items.length - 1];
+        const spinT = now - lastTime;
+        const angle = spinT * 0.003;
+
+        spinObj.quaternion.copy(spinObj.userData.baseQuaternion);
+        spinObj.quaternion.multiply(
+          new THREE.Quaternion().setFromAxisAngle(
+            eggAxis,
+            angle
+          )
+        );
+      }
+    }
+
+    const loader = new GLTFLoader();
+    loader.load(
+      GLB_FILE,
+      (gltf) => {
+        const root = gltf.scene;
+        scene.add(root);
+        initMotion(root);
+        animate();
+      },
+      undefined,
+      (error) => {
+        console.error('GLB load error:', error);
+      }
+
+      const eBlock = root.getObjectByName("e_block");
+
+      if (eBlock && eBlock.material) {
+        const sharedMaterial = eBlock.material;
+
+        names.forEach((name) => {
+          const obj = root.getObjectByName(name);
+
+          if (obj) {
+            obj.traverse((child) => {
+              if (child.isMesh) {
+                child.material = sharedMaterial;
+              }
+            });
+          }
+        });
+      }
+    );
+
+    function animate() {
+      requestAnimationFrame(animate);
+      updateMotion();
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
